@@ -64,6 +64,40 @@ public static class Utils
         return successFullyWrittenUsers;
     }
 
-    // Now write the two last ones yourself!
-    // See: https://sys23m-jensen.lms.nodehill.se/uploads/videos/2021-05-18T15-38-54/sysa-23-presentation-2024-05-02-updated.html#8
+    public static Arr RemoveMockUsers()
+    {
+    // Lista för att hålla de användare som faktiskt togs bort
+    Arr successfullyRemovedUsers = new Arr();
+
+    foreach (var user in mockUsers)
+    {
+        // Kontrollera om användaren finns i databasen
+        var result = SQLQueryOne(
+            "SELECT * FROM users WHERE email = $email",
+            new { email = user.email }
+        );
+
+        // Om användaren finns i databasen, ta bort användaren
+        if (result != null && !result.HasKey("error"))
+        {
+            // Ta bort användaren
+            var deleteResult = SQLQueryOne(
+                "DELETE FROM users WHERE email = $email RETURNING firstName, lastName, email",
+                new { email = user.email }
+            );
+
+            // Om borttagningen lyckades, lägg till användaren i listan
+            if (deleteResult != null && !deleteResult.HasKey("error"))
+            {
+                successfullyRemovedUsers.Push(deleteResult);
+            }
+        }
+    }
+
+    return successfullyRemovedUsers;
+    }
+
+
 }
+
+
